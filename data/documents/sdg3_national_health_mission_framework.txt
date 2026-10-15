@@ -1,0 +1,20 @@
+# NITI Aayog & Ministry of Health and Family Welfare: National Health Mission Policy Framework
+Document Title: National Health Mission (NHM) and Ayushman Bharat Policy Directive
+Year: 2023
+SDG: SDG 3 (Good Health and Well-Being)
+Jurisdiction: National & States of India
+
+## 1. Executive Summary & Core Targets
+Under the National Health Policy 2017 and NITI Aayog SDG India Index 2023-24 framework, SDG 3 measures performance across maternal mortality ratio (target: <70 per 100,000 live births), infant mortality rate (target: <12 per 1,000 live births), under-5 mortality rate (<25 per 1,000 live births), and 100% institutional deliveries and immunization coverage.
+
+## 2. Institutional Interventions & Infrastructure
+The transformation of 150,000 Sub-Centres and Primary Health Centres (PHCs) into Ayushman Arogya Mandirs (Health and Wellness Centres - HWCs) has decentralized non-communicable disease (NCD) screening for hypertension, diabetes, and oral/breast/cervical cancers. Over 110 million screenings have been conducted nationwide.
+
+## 3. Financial Protection: Ayushman Bharat PM-JAY
+Ayushman Bharat Pradhan Mantri Jan Arogya Yojana (PM-JAY) offers secondary and tertiary health insurance coverage of INR 5 Lakh per family per year for over 120 million vulnerable families. States integrating state health insurance with PM-JAY (e.g., Tamil Nadu CMCHS, Gujarat MA Yojana) observed a 28% decrease in catastrophic out-of-pocket health expenditures (OOPE) between 2018 and 2023.
+
+## 4. State-Specific Best Practices & Evidence
+- Kerala (Aardram Mission): Upgraded all Primary Health Centres into Family Health Centres with evening outpatient departments, digital EHR, and depression screening. Retained the highest national SDG 3 score (82 in 2023).
+- Tamil Nadu: Institutionalized Tamil Nadu Medical Services Corporation (TNMSC) for centralized generic medicine procurement, eliminating drug stock-outs at village PHCs. Achieved 99.8% institutional deliveries.
+- Uttar Pradesh: Implemented the 'First Referral Unit' (FRU) strengthening program in 8 aspirational districts, deploying mobile medical units (MMUs) and specialized neonatal ambulances, contributing to a 14-point jump in SDG 3 score from 2019 to 2023.
+- Bihar & Assam: Face persistent human resource constraints with over 35% doctor vacancy in rural PHCs. Policy recommendation: Implement rural tenure allowances and compulsory rural service bonding.

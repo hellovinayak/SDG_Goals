@@ -23,3 +23,7 @@ ENV/
 # Temporary logs & cache
 *.log
 .system_generated/
+
+# Secrets & Vector DB
+.env
+data/chroma_db/

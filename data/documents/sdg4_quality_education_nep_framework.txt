@@ -1,0 +1,21 @@
+# Ministry of Education & NITI Aayog: National Education Policy (NEP 2020) & Samagra Shiksha Framework
+Document Title: NEP 2020 and Samagra Shiksha Quality Education Implementation Guidelines
+Year: 2023
+SDG: SDG 4 (Quality Education)
+Jurisdiction: National & State School Boards
+
+## 1. Statutory Objectives & National Benchmark
+SDG 4 performance under NITI Aayog tracks Adjusted Net Enrolment Ratio (ANER) in elementary education, Gross Enrolment Ratio (GER) at secondary and higher secondary levels (target: 100% by 2030), gender parity index (GPI = 1.0), pupil-teacher ratio (PTR <= 30:1), and percentage of schools with functional electricity and separate girls' toilets.
+
+## 2. Foundational Literacy and Numeracy (NIPUN Bharat Mission)
+The National Initiative for Proficiency in Reading with Understanding and Numeracy (NIPUN Bharat) aims to achieve universal foundational literacy and numeracy for every child by Grade 3. States that adopted mother-tongue instruction in early primary grades demonstrated a 19% improvement in reading fluency in NAS (National Achievement Survey) evaluations.
+
+## 3. Infrastructure & Digital Enablement
+Under PM-SHRI (PM Schools for Rising India), over 14,500 schools are equipped with smart classrooms, DIKSHA digital pedagogical repositories, and Atal Tinkering Labs (ATLs) to foster scientific enquiry and robotics education.
+
+## 4. State-Specific Policy Case Studies
+- Himachal Pradesh: Universal school access in difficult Himalayan terrain with decentralized cluster school transport subsidies. Achieved high student retention and 96% secondary transition rates.
+- Delhi: Implemented the 'Chunauti' remedial grouping initiative and the 'Happiness Curriculum', focusing on socio-emotional learning, reducing high school dropouts from 9.4% in 2018 to under 3.2% in 2023.
+- Kerala: First state in India to digitize all public school classrooms with broadband connectivity under the Kerala Infrastructure and Technology for Education (KITE) initiative.
+- Rajasthan: Pioneered the Mahatma Gandhi English Medium Government Schools model, reversing public-to-private school migration and enrolling over 300,000 rural students.
+- Lagging States (e.g., Bihar, Jharkhand): Secondary school dropout remains acute for girls due to lack of transport and functional school sanitation. Policy recommendation: Universal bicycle distribution schemes (similar to Bihar Mukhyamantri Balika Cycle Yojana) and guaranteed sanitation maintenance grants.

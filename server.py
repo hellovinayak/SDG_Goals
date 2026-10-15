@@ -10,6 +10,8 @@ import sys
 import io
 import pandas as pd
 import numpy as np
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -19,16 +21,20 @@ from fastapi.middleware.cors import CORSMiddleware
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
+from src.rag_engine import get_rag_engine
 from src.data_loader import (
     load_sdg_data, 
     STATES_AND_UTS, 
     load_health_indicators, 
     load_climate_indicators
 )
+from src.gap_analysis import compute_state_sdg_gaps
+from src.action_planner import generate_2026_action_plan
 from src.model_engine import (
     train_and_validate_models, 
     generate_forecasts, 
     get_complete_timeseries,
+    generate_scenario_forecasts,
     SDG_TARGETS
 )
 from src.risk_classifier import (
@@ -93,6 +99,10 @@ def get_pipeline_cache():
 @app.on_event("startup")
 def startup_event():
     get_pipeline_cache()
+    try:
+        get_rag_engine()
+    except Exception as e:
+        print(f"Warning: RAG engine warmup failed: {e}")
 
 @app.get("/api/initial-data")
 def get_initial_data():
@@ -208,6 +218,91 @@ def export_csv(dataset_name: str):
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+class AIPolicyRequest(BaseModel):
+    question: str
+    state: Optional[str] = "Tamil Nadu"
+    sdg: Optional[str] = "SDG3_Health"
+    action_type: Optional[str] = "general"
+    peer_state: Optional[str] = None
+    simulation_input: Optional[str] = None
+    history: Optional[List[Dict[str, str]]] = None
+
+@app.get("/api/ai-policy/status")
+def get_ai_policy_status():
+    """Returns vector store indexing state and Gemini model readiness."""
+    try:
+        engine = get_rag_engine()
+        return engine.get_status()
+    except Exception as e:
+        return {
+            "gemini_configured": False,
+            "model": "Error",
+            "documents_indexed": 0,
+            "chunks_indexed": 0,
+            "documents": [],
+            "error": str(e)
+        }
+
+@app.post("/api/ai-policy")
+def post_ai_policy(req: AIPolicyRequest):
+    """Processes user query through ChromaDB vector retrieval, structured data grounding, and Gemini GenAI."""
+    try:
+        engine = get_rag_engine()
+        result = engine.process_query(
+            question=req.question,
+            state=req.state or "Tamil Nadu",
+            sdg=req.sdg or "SDG3_Health",
+            action_type=req.action_type or "general",
+            peer_state=req.peer_state,
+            simulation_input=req.simulation_input,
+            history=req.history
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI Policy query failed: {str(e)}")
+
+@app.get("/api/analytics/state/{state_name}")
+def get_state_analytics(state_name: str):
+    """Returns comprehensive empirical gap analysis, unmet targets, and 2026 action plan for a state."""
+    try:
+        gaps = compute_state_sdg_gaps(state_name)
+        action_plan = generate_2026_action_plan(state_name)
+        return {
+            "state": state_name,
+            "gaps": gaps,
+            "action_plan": action_plan
+        }
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Could not compute analytics for {state_name}: {str(e)}")
+
+@app.get("/api/forecasts/extended/{state_name}")
+def get_extended_forecasts(state_name: str):
+    """Returns 2024-2030 forecasts across Baseline, Improvement, and Higher-Effort scenarios."""
+    try:
+        cache = get_pipeline_cache()
+        trained_models = cache.get("models")
+        results = {}
+        for sdg in SDG_TARGETS:
+            sc = generate_scenario_forecasts(state_name, sdg, trained_models=trained_models)
+            results[sdg] = sc
+        return {
+            "state": state_name,
+            "horizon_years": [2024, 2025, 2026, 2027, 2028, 2029, 2030],
+            "scenarios_by_sdg": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not compute extended forecasts for {state_name}: {str(e)}")
+
+@app.get("/api/audit-report")
+def get_audit_report():
+    """Returns machine-readable Phase 1 data inventory and quality audit."""
+    import json
+    report_path = os.path.join(BASE_DIR, "reports", "data_inventory.json")
+    if os.path.exists(report_path):
+        with open(report_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"message": "Data audit inventory not found."}
 
 # Serve static frontend
 STATIC_DIR = os.path.join(BASE_DIR, "static")

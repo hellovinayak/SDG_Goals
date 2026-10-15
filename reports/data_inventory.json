@@ -1,0 +1,681 @@
+{
+  "audit_timestamp": "2026-10-15T01:25:00Z",
+  "total_datasets_inspected": 16,
+  "datasets": [
+    {
+      "filename": "SDG_13_18.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_13_18.csv",
+      "file_size_kb": 0.92,
+      "category": "Climate Indicators",
+      "purpose": "Renewable energy share in total power generation capacity",
+      "temporal_coverage": "2018",
+      "rows": 38,
+      "columns_count": 3,
+      "column_names": [
+        "SNo",
+        "Area",
+        "Percentage of renewable energy out of total installed generating capacity (including allocated shares)"
+      ],
+      "entity_column": "Area",
+      "entity_count": 36,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Jammu and Kashmir",
+        "Ladakh"
+      ],
+      "sample_records": [
+        {
+          "SNo": 1,
+          "Area": "Target",
+          "Percentage of renewable energy out of total installed generating capacity (including allocated shares)": 40.0
+        },
+        {
+          "SNo": 2,
+          "Area": "India",
+          "Percentage of renewable energy out of total installed generating capacity (including allocated shares)": 17.51
+        }
+      ]
+    },
+    {
+      "filename": "SDG_13_19-20.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_13_19-20.csv",
+      "file_size_kb": 0.63,
+      "category": "Raw SDG 13 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Climate Action",
+      "temporal_coverage": "19-20",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2019-20",
+        "2018"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 66.7,
+      "null_cells_count": 29,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2019-20": 60,
+          "2018": null
+        },
+        {
+          "AREA": "Karnataka",
+          "2019-20": 71,
+          "2018": null
+        }
+      ]
+    },
+    {
+      "filename": "SDG_13_20-21.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_13_20-21.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 13 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Climate Action",
+      "temporal_coverage": "20-21",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2020-21",
+        "2019"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2020-21": 67,
+          "2019": 54
+        },
+        {
+          "AREA": "Sikkim",
+          "2020-21": 81,
+          "2019": 65
+        }
+      ]
+    },
+    {
+      "filename": "SDG_13_23-24.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_13_23-24.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 13 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Climate Action",
+      "temporal_coverage": "23-24",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2023-24",
+        "2020"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2023-24": 67,
+          "2020": 54
+        },
+        {
+          "AREA": "Sikkim",
+          "2023-24": 81,
+          "2020": 65
+        }
+      ]
+    },
+    {
+      "filename": "SDG_3_18.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_3_18.csv",
+      "file_size_kb": 0.56,
+      "category": "Raw SDG 3 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Health",
+      "temporal_coverage": "18",
+      "rows": 30,
+      "columns_count": 2,
+      "column_names": [
+        "AREA",
+        "2018"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 29,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2018": 52
+        },
+        {
+          "AREA": "Kerala",
+          "2018": 92
+        }
+      ]
+    },
+    {
+      "filename": "SDG_3_19-20.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_3_19-20.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 3 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Health",
+      "temporal_coverage": "19-20",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2019-20",
+        "2018"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2019-20": 61,
+          "2018": 52
+        },
+        {
+          "AREA": "Kerala",
+          "2019-20": 82,
+          "2018": 92
+        }
+      ]
+    },
+    {
+      "filename": "SDG_3_20-21.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_3_20-21.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 3 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Health",
+      "temporal_coverage": "20-21",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2020-21",
+        "2019"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2020-21": 74,
+          "2019": 61
+        },
+        {
+          "AREA": "Gujarat",
+          "2020-21": 86,
+          "2019": 67
+        }
+      ]
+    },
+    {
+      "filename": "SDG_3_23-24.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_3_23-24.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 3 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Health",
+      "temporal_coverage": "23-24",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2023-24",
+        "2020"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2023-24": 77,
+          "2020": 74
+        },
+        {
+          "AREA": "Gujarat",
+          "2023-24": 90,
+          "2020": 86
+        }
+      ]
+    },
+    {
+      "filename": "SDG_3_25.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_3_25.csv",
+      "file_size_kb": 1.99,
+      "category": "Health Indicators",
+      "purpose": "Indicator-level health measurements (MMR, U5MR, Immunization, Physicians, TB)",
+      "temporal_coverage": "2020-21 / NFHS-5",
+      "rows": 38,
+      "columns_count": 8,
+      "column_names": [
+        "SNo",
+        "Area",
+        "Under-five Mortality Rate (per 1000 live births)",
+        "Total case notification rate of tuberculosis",
+        "Women in the age group of 15-49 years using modern methods of family planning",
+        "Number of governmental physicians nurses and midwives",
+        "Children aged 12-23 months fully immunized (BCG Measles and three doses of Pentavalent vaccine)",
+        "Maternal Mortality Ratio (per 100000 live births)"
+      ],
+      "entity_column": "Area",
+      "entity_count": 36,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Jammu and Kashmir",
+        "Ladakh"
+      ],
+      "sample_records": [
+        {
+          "SNo": 1,
+          "Area": "Target",
+          "Under-five Mortality Rate (per 1000 live births)": "11",
+          "Total case notification rate of tuberculosis": 0.0,
+          "Women in the age group of 15-49 years using modern methods of family planning": 100.0,
+          "Number of governmental physicians nurses and midwives": "549.96",
+          "Children aged 12-23 months fully immunized (BCG Measles and three doses of Pentavalent vaccine)": 100.0,
+          "Maternal Mortality Ratio (per 100000 live births)": "70"
+        },
+        {
+          "SNo": 2,
+          "Area": "India",
+          "Under-five Mortality Rate (per 1000 live births)": "50",
+          "Total case notification rate of tuberculosis": 138.33,
+          "Women in the age group of 15-49 years using modern methods of family planning": 53.5,
+          "Number of governmental physicians nurses and midwives": "220.96",
+          "Children aged 12-23 months fully immunized (BCG Measles and three doses of Pentavalent vaccine)": 62.0,
+          "Maternal Mortality Ratio (per 100000 live births)": "130"
+        }
+      ]
+    },
+    {
+      "filename": "SDG_4_18.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_4_18.csv",
+      "file_size_kb": 0.56,
+      "category": "Raw SDG 4 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Education",
+      "temporal_coverage": "18",
+      "rows": 30,
+      "columns_count": 2,
+      "column_names": [
+        "AREA",
+        "2018"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 29,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2018": 58
+        },
+        {
+          "AREA": "Himachal Pradesh",
+          "2018": 81
+        }
+      ]
+    },
+    {
+      "filename": "SDG_4_19-20.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_4_19-20.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 4 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Education",
+      "temporal_coverage": "19-20",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2019-20",
+        "2018"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2019-20": 58,
+          "2018": 58
+        },
+        {
+          "AREA": "Himachal Pradesh",
+          "2019-20": 81,
+          "2018": 82
+        }
+      ]
+    },
+    {
+      "filename": "SDG_4_20-21.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_4_20-21.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 4 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Education",
+      "temporal_coverage": "20-21",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2020-21",
+        "2019"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2020-21": 57,
+          "2019": 58
+        },
+        {
+          "AREA": "Kerala",
+          "2020-21": 80,
+          "2019": 74
+        }
+      ]
+    },
+    {
+      "filename": "SDG_4_23-24.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/SDG_4_23-24.csv",
+      "file_size_kb": 0.68,
+      "category": "Raw SDG 4 Scores",
+      "purpose": "Official NITI Aayog raw index scores for Education",
+      "temporal_coverage": "23-24",
+      "rows": 29,
+      "columns_count": 3,
+      "column_names": [
+        "AREA",
+        "2023-24",
+        "2020"
+      ],
+      "entity_column": "AREA",
+      "entity_count": 28,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli and Daman and Diu",
+        "Delhi",
+        "Jammu and Kashmir",
+        "Ladakh",
+        "Lakshadweep",
+        "Puducherry"
+      ],
+      "sample_records": [
+        {
+          "AREA": "India",
+          "2023-24": 61,
+          "2020": 57
+        },
+        {
+          "AREA": "Kerala",
+          "2023-24": 82,
+          "2020": 80
+        }
+      ]
+    },
+    {
+      "filename": "niti_aayog_sdg_historical.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/niti_aayog_sdg_historical.csv",
+      "file_size_kb": 7.96,
+      "category": "Historical Time Series",
+      "purpose": "Normalized longitudinal scores for model training (2018-2023)",
+      "temporal_coverage": "2018\u20132023",
+      "rows": 222,
+      "columns_count": 6,
+      "column_names": [
+        "State",
+        "Year",
+        "SDG3_Health",
+        "SDG4_Education",
+        "SDG13_Climate",
+        "Composite_Score"
+      ],
+      "entity_column": "State",
+      "entity_count": 36,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [],
+      "sample_records": [
+        {
+          "State": "Andhra Pradesh",
+          "Year": 2018,
+          "SDG3_Health": 68.0,
+          "SDG4_Education": 52.0,
+          "SDG13_Climate": 70.0,
+          "Composite_Score": 63.3
+        },
+        {
+          "State": "Andhra Pradesh",
+          "Year": 2019,
+          "SDG3_Health": 76.0,
+          "SDG4_Education": 52.0,
+          "SDG13_Climate": 70.0,
+          "Composite_Score": 66.0
+        }
+      ]
+    },
+    {
+      "filename": "sdg_projections_2024_2026.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/sdg_projections_2024_2026.csv",
+      "file_size_kb": 19.43,
+      "category": "ML Forecasts",
+      "purpose": "Random Forest Regressor projections with 95% CIs",
+      "temporal_coverage": "2024\u20132026",
+      "rows": 333,
+      "columns_count": 8,
+      "column_names": [
+        "State",
+        "Year",
+        "SDG",
+        "Forecast_Score",
+        "CI_Lower_95",
+        "CI_Upper_95",
+        "Annual_Growth_Rate",
+        "Trend"
+      ],
+      "entity_column": "State",
+      "entity_count": 36,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [],
+      "sample_records": [
+        {
+          "State": "Andhra Pradesh",
+          "Year": 2024,
+          "SDG": "SDG3_Health",
+          "Forecast_Score": 80.0,
+          "CI_Lower_95": 76.4,
+          "CI_Upper_95": 83.6,
+          "Annual_Growth_Rate": 2.0,
+          "Trend": "Improving"
+        },
+        {
+          "State": "Andhra Pradesh",
+          "Year": 2025,
+          "SDG": "SDG3_Health",
+          "Forecast_Score": 81.4,
+          "CI_Lower_95": 77.6,
+          "CI_Upper_95": 85.1,
+          "Annual_Growth_Rate": 2.0,
+          "Trend": "Improving"
+        }
+      ]
+    },
+    {
+      "filename": "sdg_validation_scorecard.csv",
+      "path": "/Users/vinayakrathod/Desktop/SDG-Dashboard-/data/sdg_validation_scorecard.csv",
+      "file_size_kb": 7.2,
+      "category": "Validation Metrics",
+      "purpose": "Holdout error scorecard (RMSE, MAE, R\u00b2, naive baseline)",
+      "temporal_coverage": "2022\u20132023",
+      "rows": 111,
+      "columns_count": 10,
+      "column_names": [
+        "State",
+        "SDG",
+        "RMSE",
+        "MAE",
+        "R2",
+        "Holdout_Actual_2022",
+        "Holdout_Pred_2022",
+        "Holdout_Actual_2023",
+        "Holdout_Pred_2023",
+        "Naive_Beaten"
+      ],
+      "entity_column": "State",
+      "entity_count": 36,
+      "completeness_pct": 100.0,
+      "null_cells_count": 0,
+      "missing_states_from_standard_36": [],
+      "sample_records": [
+        {
+          "State": "Andhra Pradesh",
+          "SDG": "SDG3_Health",
+          "RMSE": 0.72,
+          "MAE": 0.71,
+          "R2": 0.86,
+          "Holdout_Actual_2022": 77.7,
+          "Holdout_Pred_2022": 77.1,
+          "Holdout_Actual_2023": 78.0,
+          "Holdout_Pred_2023": 77.1,
+          "Naive_Beaten": true
+        },
+        {
+          "State": "Andhra Pradesh",
+          "SDG": "SDG4_Education",
+          "RMSE": 1.07,
+          "MAE": 1.01,
+          "R2": 0.84,
+          "Holdout_Actual_2022": 51.3,
+          "Holdout_Pred_2022": 50.6,
+          "Holdout_Actual_2023": 52.0,
+          "Holdout_Pred_2023": 50.6,
+          "Naive_Beaten": true
+        }
+      ]
+    }
+  ]
+}

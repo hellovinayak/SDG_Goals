@@ -306,12 +306,23 @@
     </section>
 
     <section id="tab-policy" class="tab-content">
+      <!-- Executive Brief & Gap Analysis -->
       <div class="glass-panel" style="margin-bottom: 24px;">
         <div class="card-header">
-          <h3 class="card-title"><i data-lucide="landmark" class="icon-sm"></i> Executive governance brief: <span id="policy-state-name" class="accent-text">Tamil Nadu</span></h3>
-          <span class="tag-pill">Target horizon: 2026</span>
+          <h3 class="card-title"><i data-lucide="landmark" class="icon-sm"></i> Executive governance brief &amp; gap analysis: <span id="policy-state-name" class="accent-text">Tamil Nadu</span></h3>
+          <span class="tag-pill">Horizon: 2024–2030</span>
         </div>
         <div id="policy-executive-summary" style="margin-bottom: 20px;"></div>
+        
+        <h4 style="color: var(--text-primary); font-size: 15px; margin: 20px 0 10px 0; font-weight: 600;"><i data-lucide="crosshair" class="icon-xs"></i> 1. Prioritized SDG Gap Analysis &amp; Below-Target Indicators</h4>
+        <div id="policy-gaps-table-container" style="overflow-x: auto; margin-bottom: 24px;"></div>
+
+        <h4 style="color: var(--text-primary); font-size: 15px; margin: 20px 0 10px 0; font-weight: 600;"><i data-lucide="calendar-check" class="icon-xs"></i> 2. Phased 2026 Departmental Action Plan &amp; Measurable KPIs</h4>
+        <div id="policy-action-plan-container" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;"></div>
+
+        <h4 style="color: var(--text-primary); font-size: 15px; margin: 20px 0 10px 0; font-weight: 600;"><i data-lucide="trending-up" class="icon-xs"></i> 3. Multi-Year Scenario Matrix (2024, 2025, 2026, 2027, 2028, 2029, 2030)</h4>
+        <div id="policy-scenarios-container" style="overflow-x: auto; margin-bottom: 20px;"></div>
+
         <div id="policy-recommendations-container"></div>
       </div>
 
@@ -478,6 +489,159 @@
         </div>
       </dl>
     </div>
+  </div>
+
+  <!-- Floating Workbench Trigger Button (Fixed in bottom-right corner) -->
+  <div class="ai-fab-container" id="aiFabContainer">
+    <button type="button" class="ai-fab-btn" id="aiFabBtn" aria-label="Open SDG Policy Workbench" title="Open SDG Policy Workbench (Click or press Esc)">
+      <div class="ai-fab-icon-wrap">
+        <i data-lucide="layers" class="ai-fab-icon" id="aiFabIcon"></i>
+      </div>
+      <span class="ai-fab-label">Policy Workbench</span>
+    </button>
+  </div>
+
+  <!-- Institutional Policy Workbench Panel -->
+  <div class="ai-chat-popup" id="aiChatPopup" role="dialog" aria-modal="true" aria-labelledby="aiChatTitle" style="display: none;">
+    <!-- Manual Resize Handles -->
+    <div class="ai-resize-handle ai-resize-nw" id="aiResizeNW" title="Drag to resize width and height (Double-click to reset size)">
+      <span class="ai-resize-grip" aria-hidden="true"></span>
+    </div>
+    <div class="ai-resize-handle ai-resize-w" id="aiResizeW" title="Drag to adjust width"></div>
+    <div class="ai-resize-handle ai-resize-n" id="aiResizeN" title="Drag to adjust height"></div>
+
+    <!-- Panel Header -->
+    <div class="ai-chat-header" id="aiChatHeader" title="Double-click header to maximize/restore">
+      <div class="ai-chat-header-info">
+        <div class="ai-chat-avatar">
+          <i data-lucide="layers" class="text-slate-400"></i>
+        </div>
+        <div>
+          <h3 class="ai-chat-title" id="aiChatTitle">SDG Policy Workbench</h3>
+          <div class="ai-chat-status font-mono" id="aiChatStatusBadge" title="NITI Aayog SDG Index v4.0 Repository Connected">
+            <span class="status-dot online"></span>
+            <span id="aiChatStatusText">NITI Aayog Index v4.0 &bull; Connected</span>
+          </div>
+        </div>
+      </div>
+      <div class="ai-chat-header-actions">
+        <button type="button" class="ai-btn-icon" id="aiMaximizeChatBtn" title="Maximize / Restore window (Double-click header)" aria-label="Maximize Workbench">
+          <i data-lucide="maximize-2" id="aiMaximizeIcon"></i>
+        </button>
+        <button type="button" class="ai-btn-icon" id="aiClearChatBtn" title="Reset Scope &amp; Session" aria-label="Reset Scope &amp; Session">
+          <i data-lucide="trash-2"></i>
+        </button>
+        <button type="button" class="ai-btn-icon" id="aiCloseChatBtn" title="Close Workbench (Esc)" aria-label="Close Workbench">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Compact Top Filter Utility Bar -->
+    <div class="workbench-filter-bar">
+      <div class="workbench-filter-item">
+        <label for="aiStateSelect" class="workbench-filter-label font-mono">STATE:</label>
+        <select id="aiStateSelect" class="workbench-select">
+          <option value="Maharashtra" selected>Maharashtra</option>
+        </select>
+      </div>
+      <div class="workbench-filter-item">
+        <label for="aiSdgSelect" class="workbench-filter-label font-mono">GOAL:</label>
+        <select id="aiSdgSelect" class="workbench-select">
+          <option value="SDG4_Education" selected>SDG 4: Quality Education</option>
+          <option value="SDG3_Health">SDG 3: Good Health</option>
+          <option value="SDG13_Climate">SDG 13: Climate Action</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Scrollable Messages & Diagnostic Area -->
+    <div class="ai-chat-messages" id="aiChatMessages">
+      <!-- Diagnostic Workspace Panel -->
+      <div class="ai-msg ai-msg-assistant">
+        <div class="ai-bubble workbench-welcome-bubble">
+          <div class="workbench-welcome-panel">
+            <div class="workbench-scope-header">
+              <div class="workbench-scope-tag">
+                <i data-lucide="crosshair" class="workbench-scope-icon text-slate-400"></i>
+                <span class="workbench-scope-title">Active Scope: <span id="workbenchScopeTarget">Maharashtra — SDG 4: Quality Education</span></span>
+              </div>
+              <p class="workbench-scope-subtitle">Select a diagnostic module below or run a custom policy query.</p>
+            </div>
+            <div class="workbench-diagnostic-grid">
+              <button type="button" class="ai-chip workbench-card" data-action="comprehensive_audit" data-query="Perform a comprehensive 7-dimension SDG baseline audit for this state">
+                <div class="workbench-card-header">
+                  <i data-lucide="activity" class="workbench-card-icon text-slate-400"></i>
+                  <span class="workbench-card-title">7-Dimension Baseline Audit</span>
+                </div>
+                <span class="workbench-card-sub">Comprehensive state performance breakdown</span>
+              </button>
+              <button type="button" class="ai-chip workbench-card" data-action="gap_analysis" data-query="Identify target deficit, prioritized bottlenecks, and lagging indicators vs 2030 goals">
+                <div class="workbench-card-header">
+                  <i data-lucide="alert-circle" class="workbench-card-icon text-slate-400"></i>
+                  <span class="workbench-card-title">Target Deficit &amp; Bottlenecks</span>
+                </div>
+                <span class="workbench-card-sub">Identify lagging indicators vs. 2030 goals</span>
+              </button>
+              <button type="button" class="ai-chip workbench-card" data-action="action_plan_2026" data-query="Generate practical FY26 departmental intervention roadmap with priority action plan and measurable KPIs">
+                <div class="workbench-card-header">
+                  <i data-lucide="calendar-check" class="workbench-card-icon text-slate-400"></i>
+                  <span class="workbench-card-title"><span class="font-mono">FY26</span> Intervention Roadmap</span>
+                </div>
+                <span class="workbench-card-sub">Priority action plan and measurable KPIs</span>
+              </button>
+              <button type="button" class="ai-chip workbench-card" data-action="extended_forecasts" data-query="Show forecasts for 2024 to 2030 across Random Forest baseline and accelerated trajectory scenarios">
+                <div class="workbench-card-header">
+                  <i data-lucide="line-chart" class="workbench-card-icon text-slate-400"></i>
+                  <span class="workbench-card-title"><span class="font-mono">2024–2030</span> Trajectory Scenarios</span>
+                </div>
+                <span class="workbench-card-sub">Random Forest baseline vs. accelerated forecasts</span>
+              </button>
+              <button type="button" class="ai-chip workbench-card" data-action="score_context" data-query="Decompose score variance attribution, historical drivers, and delta factors">
+                <div class="workbench-card-header">
+                  <i data-lucide="bar-chart-2" class="workbench-card-icon text-slate-400"></i>
+                  <span class="workbench-card-title">Score Variance Attribution</span>
+                </div>
+                <span class="workbench-card-sub">Historical driver &amp; delta decomposition</span>
+              </button>
+              <button type="button" class="ai-chip workbench-card" data-action="peer_state" data-query="Find comparative peer state cohorts and best-practice analysis">
+                <div class="workbench-card-header">
+                  <i data-lucide="git-compare" class="workbench-card-icon text-slate-400"></i>
+                  <span class="workbench-card-title">Peer State Benchmarking</span>
+                </div>
+                <span class="workbench-card-sub">Comparative cohort &amp; best-practice analysis</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="ai-typing-indicator" id="aiTypingIndicator" style="display: none;">
+      <div class="ai-typing-dot"></div>
+      <div class="ai-typing-dot"></div>
+      <div class="ai-typing-dot"></div>
+      <span class="font-mono">Executing policy analytics query...</span>
+    </div>
+
+    <!-- Chat Footer & Input Form -->
+    <form class="ai-chat-footer" id="aiChatForm">
+      <div class="ai-input-wrap">
+        <textarea 
+          id="aiUserInput" 
+          rows="1" 
+          placeholder="Run a policy query, compare state indicators, or simulate 2030 targets..." 
+          aria-label="Run a policy query"
+        ></textarea>
+        <button type="submit" class="ai-send-btn" id="aiSendBtn" aria-label="Execute query" title="Execute Query (Enter)">
+          <i data-lucide="arrow-up" id="aiSendIcon"></i>
+        </button>
+      </div>
+      <div class="ai-input-hint font-mono">
+        <span>Press <kbd>Enter</kbd> to run &bull; <kbd>Shift + Enter</kbd> newline &bull; <kbd>Esc</kbd> dismiss</span>
+      </div>
+    </form>
   </div>
 
   <script src="/static/app.js"></script>
