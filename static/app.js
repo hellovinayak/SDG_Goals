@@ -101,6 +101,14 @@ function handleTabSwitch(tabId) {
     renderClimateCharts();
   } else if (tabId === "tab-health") {
     renderHealthChart();
+  } else if (tabId === "tab-esp32") {
+    esp32StartPolling();
+    esp32FetchLogs();
+  }
+
+  // Stop ESP32 polling when navigating away from the tab
+  if (tabId !== "tab-esp32") {
+    esp32StopPolling();
   }
 }
 
@@ -2273,3 +2281,520 @@ function scrollAIChatToBottom() {
     box.scrollTop = box.scrollHeight;
   }
 }
+
+// ═══════════════════════════════════════════════════════════
+// ESP32 LIVE TELEMETRY MODULE (Synchronized with ESP32 10s Logging)
+// ═══════════════════════════════════════════════════════════
+
+const ESP32_SYNC_INTERVAL = 10; // seconds
+
+const esp32State = {
+  countdownTimer: null,
+  secondsLeft: ESP32_SYNC_INTERVAL,
+  isSyncing: false,
+  connected: false,
+  lastUptime: null,
+  lastSyncTimestamp: null,
+  envChart: null,
+  atmChart: null,
+};
+
+// ── Polling & Countdown lifecycle ──────────────────────────
+function esp32StartPolling() {
+  if (esp32State.countdownTimer) return;
+  // Trigger immediate sync on tab entry
+  esp32SyncAll();
+  esp32State.secondsLeft = ESP32_SYNC_INTERVAL;
+  esp32UpdateCountdownUI(false);
+  esp32State.countdownTimer = setInterval(esp32CountdownTick, 1000);
+}
+
+function esp32StopPolling() {
+  if (esp32State.countdownTimer) {
+    clearInterval(esp32State.countdownTimer);
+    esp32State.countdownTimer = null;
+  }
+}
+
+function esp32CountdownTick() {
+  if (esp32State.isSyncing) {
+    esp32UpdateCountdownUI(true);
+    return;
+  }
+
+  esp32State.secondsLeft--;
+  if (esp32State.secondsLeft <= 0) {
+    esp32SyncAll();
+  } else {
+    esp32UpdateCountdownUI(false);
+  }
+}
+
+function esp32UpdateCountdownUI(isSyncing) {
+  const cdText = document.getElementById("esp32CountdownText");
+  const cdBadge = document.getElementById("esp32CountdownBadge");
+  const tableText = document.getElementById("esp32TableSyncText");
+  const tableBadge = document.getElementById("esp32TableSyncBadge");
+
+  if (isSyncing) {
+    if (cdText) cdText.textContent = "Syncing…";
+    if (cdBadge) cdBadge.classList.add("syncing");
+    if (tableText) tableText.textContent = "Syncing…";
+    if (tableBadge) tableBadge.classList.add("syncing");
+  } else {
+    const txt = `Next sync in ${esp32State.secondsLeft}s`;
+    if (cdText) cdText.textContent = txt;
+    if (cdBadge) cdBadge.classList.remove("syncing");
+    if (tableText) tableText.textContent = `Sync in ${esp32State.secondsLeft}s`;
+    if (tableBadge) tableBadge.classList.remove("syncing");
+  }
+
+  // Update relative time since last sync
+  const lastUpdateEl = document.getElementById("esp32LastUpdate");
+  if (lastUpdateEl && esp32State.lastSyncTimestamp) {
+    const elapsedSec = Math.floor((Date.now() - esp32State.lastSyncTimestamp) / 1000);
+    const uptimeStr = esp32State.lastUptime !== null ? ` (Uptime: ${esp32State.lastUptime}s)` : "";
+    if (elapsedSec < 5) {
+      lastUpdateEl.textContent = `Just now${uptimeStr}`;
+    } else {
+      lastUpdateEl.textContent = `${elapsedSec}s ago${uptimeStr}`;
+    }
+  }
+}
+
+// ── Master Synchronized Sync Function ──────────────────────
+async function esp32SyncAll() {
+  if (esp32State.isSyncing) return;
+  esp32State.isSyncing = true;
+  esp32UpdateCountdownUI(true);
+
+  try {
+    // 1. Fetch live sensor data (fast reading from /data or /api or CSV fallback) with cache-busting
+    let liveData = null;
+    try {
+      const dataRes = await fetch(`/api/esp32/data?_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" }
+      });
+      if (dataRes.ok) {
+        const dataJson = await dataRes.json();
+        if (dataJson.connected && dataJson.data) {
+          liveData = dataJson.data;
+          esp32SetConnected(true);
+        }
+      }
+    } catch (_) {}
+
+    // 2. Fetch full log history from /download with cache-busting
+    const logsRes = await fetch(`/api/esp32/logs?limit=50&_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" }
+    });
+    if (!logsRes.ok) throw new Error(`HTTP ${logsRes.status}`);
+    const logsJson = await logsRes.json();
+
+    if (logsJson.connected) {
+      esp32SetConnected(true);
+      const logs = logsJson.logs || [];
+
+      // Sort logs newest-first for current reading and table
+      const newestFirst = logs.slice().sort((a, b) => (b.uptime || 0) - (a.uptime || 0));
+      const latest = newestFirst[0] || liveData || {};
+
+      // If liveData had higher uptime or newer values, merge them
+      const activeData = { ...latest, ...(liveData || {}) };
+
+      // Update 4 top cards
+      esp32UpdateSensorCards(activeData);
+
+      // Update status metadata
+      esp32State.lastUptime = activeData.uptime !== null && activeData.uptime !== undefined ? Math.round(activeData.uptime) : null;
+      esp32State.lastSyncTimestamp = Date.now();
+      esp32UpdateMeta({
+        connected: true,
+        source: logsJson.total ? "CSV /download" : "Live Proxy",
+        rows: logsJson.total || logs.length,
+        data: activeData
+      });
+
+      // Update Table (sorted newest uptime first: 220s, 210s, 200s...)
+      esp32RenderLogsTable(newestFirst);
+
+      // Update Engineering Charts (chronological order)
+      const chronological = logs.slice().sort((a, b) => (a.uptime || 0) - (b.uptime || 0));
+      esp32RenderEngineeringCharts(chronological);
+
+    } else {
+      esp32SetConnected(false, logsJson.error || "Device unreachable");
+    }
+  } catch (err) {
+    esp32SetConnected(false, err.message);
+  } finally {
+    esp32State.isSyncing = false;
+    esp32State.secondsLeft = ESP32_SYNC_INTERVAL;
+    esp32UpdateCountdownUI(false);
+  }
+}
+
+// ── Connection status UI ───────────────────────────────────
+function esp32SetConnected(isConnected, errorMsg) {
+  const dot = document.getElementById("esp32StatusDot");
+  const text = document.getElementById("esp32ConnText");
+  const badge = document.getElementById("esp32ConnBadge");
+
+  if (!dot || !text || !badge) return;
+  dot.className = "status-dot";
+
+  if (isConnected) {
+    dot.classList.add("connected");
+    text.textContent = "Connected to 192.168.4.1";
+    badge.classList.add("live");
+    esp32State.connected = true;
+  } else {
+    dot.classList.add("disconnected");
+    text.textContent = errorMsg ? `Disconnected: ${errorMsg}` : "Disconnected";
+    badge.classList.remove("live");
+    esp32State.connected = false;
+  }
+}
+
+// ── Update sensor value cards (Clean & Minimal) ────────────
+function esp32UpdateSensorCards(data) {
+  if (!data) return;
+
+  const temp = data.temperature ?? data.temp ?? data.t ?? null;
+  const hum  = data.humidity ?? data.hum ?? data.h ?? null;
+  const pres = data.pressure ?? data.pres ?? data.p ?? null;
+  const soil = data.soilPercent ?? data.soil ?? data.s ?? null;
+  
+  // Explicitly check for 0 so it never shows "—"
+  let raw = 0;
+  if (data.soilRaw !== undefined && data.soilRaw !== null && !isNaN(data.soilRaw)) {
+    raw = Math.round(Number(data.soilRaw));
+  } else if (data.raw !== undefined && data.raw !== null && !isNaN(data.raw)) {
+    raw = Math.round(Number(data.raw));
+  } else if (data.adc !== undefined && data.adc !== null && !isNaN(data.adc)) {
+    raw = Math.round(Number(data.adc));
+  }
+
+  const setVal = (elId, val, dec) => {
+    const el = document.getElementById(elId);
+    if (el) {
+      const display = val !== null && val !== undefined && !isNaN(val) ? Number(val).toFixed(dec) : "—";
+      if (el.textContent !== display) {
+        el.textContent = display;
+        el.classList.remove("esp32-value-updating");
+        void el.offsetWidth;
+        el.classList.add("esp32-value-updating");
+      }
+    }
+  };
+
+  setVal("esp32TempVal", temp, 1);
+  setVal("esp32HumVal",  hum,  1);
+  setVal("esp32PresVal", pres, 1);
+  setVal("esp32SoilVal", soil, 1);
+
+  const rawEl = document.getElementById("esp32SoilRaw");
+  if (rawEl) rawEl.textContent = String(raw);
+
+  // Status chips
+  const tempChip = document.getElementById("esp32TempChip");
+  if (tempChip && temp !== null) {
+    if (temp >= 18 && temp <= 35) {
+      tempChip.textContent = "Normal";
+      tempChip.className = "esp32-chip optimal";
+    } else if (temp > 35) {
+      tempChip.textContent = "High";
+      tempChip.className = "esp32-chip caution";
+    } else {
+      tempChip.textContent = "Cool";
+      tempChip.className = "esp32-chip neutral";
+    }
+  }
+
+  const humChip = document.getElementById("esp32HumChip");
+  if (humChip && hum !== null) {
+    if (hum >= 40 && hum <= 75) {
+      humChip.textContent = "Optimal";
+      humChip.className = "esp32-chip optimal";
+    } else if (hum > 75) {
+      humChip.textContent = "High";
+      humChip.className = "esp32-chip caution";
+    } else {
+      humChip.textContent = "Dry";
+      humChip.className = "esp32-chip neutral";
+    }
+  }
+
+  const presChip = document.getElementById("esp32PresChip");
+  if (presChip && pres !== null) {
+    if (pres >= 1000 && pres <= 1020) {
+      presChip.textContent = "Stable";
+      presChip.className = "esp32-chip optimal";
+    } else {
+      presChip.textContent = pres > 1020 ? "High Baro" : "Low Baro";
+      presChip.className = "esp32-chip neutral";
+    }
+  }
+
+  const soilChip = document.getElementById("esp32SoilChip");
+  if (soilChip && soil !== null) {
+    if (soil >= 40) {
+      soilChip.textContent = "Moist";
+      soilChip.className = "esp32-chip optimal";
+    } else if (soil > 15) {
+      soilChip.textContent = "Moderate";
+      soilChip.className = "esp32-chip neutral";
+    } else {
+      soilChip.textContent = "Dry";
+      soilChip.className = "esp32-chip caution";
+    }
+  }
+}
+
+// ── Update status metadata ─────────────────────────────────
+function esp32UpdateMeta(json) {
+  const data = json.data || {};
+  const uptime = data.uptime ?? null;
+
+  const uptimeEl = document.getElementById("esp32Uptime");
+  if (uptimeEl) {
+    if (uptime !== null && uptime !== undefined && !isNaN(uptime)) {
+      const totalSec = Math.round(Number(uptime));
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      uptimeEl.textContent = `${h}h ${m}m ${s}s`;
+    } else {
+      uptimeEl.textContent = "—";
+    }
+  }
+
+  const logCountEl = document.getElementById("esp32LogCount");
+  if (logCountEl && json.rows !== undefined) {
+    logCountEl.textContent = json.rows;
+  }
+
+  const sourceEl = document.getElementById("esp32SourceText");
+  if (sourceEl) {
+    sourceEl.textContent = "Live 10s Auto-Sync";
+  }
+}
+
+// ── Render Logs Table (Newest Uptime First) ────────────────
+function esp32RenderLogsTable(rows) {
+  const tbody = document.getElementById("esp32LogBody");
+  if (!tbody) return;
+
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 40px;">No log entries recorded yet</td></tr>';
+    return;
+  }
+
+  const fmt = (v, dec = 1) => (v !== null && v !== undefined && !isNaN(v)) ? Number(v).toFixed(dec) : "—";
+  const fmtInt = v => (v !== null && v !== undefined && !isNaN(v)) ? Math.round(Number(v)) : "0";
+
+  tbody.innerHTML = rows.map(r => {
+    const rawVal = r.soilRaw ?? r.raw ?? r.adc ?? 0;
+    return `<tr>
+      <td><strong>${r.uptime !== null && r.uptime !== undefined && !isNaN(r.uptime) ? Math.round(r.uptime) + "s" : "—"}</strong></td>
+      <td style="color: #34d399; font-weight: 600;">${fmt(r.temperature ?? r.temp)}</td>
+      <td style="color: #60a5fa; font-weight: 600;">${fmt(r.humidity)}</td>
+      <td style="color: #fb923c; font-weight: 600;">${fmt(r.pressure)}</td>
+      <td style="color: #c084fc; font-weight: 600;">${fmt(r.soilPercent)}</td>
+      <td>${fmtInt(rawVal)}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ── Dual Side-by-Side Engineering Charts ───────────────────
+function esp32RenderEngineeringCharts(chronologicalLogs) {
+  if (!chronologicalLogs || chronologicalLogs.length === 0) return;
+
+  // Extract distinct chronological points with real uptimes
+  const labels = chronologicalLogs.map(r => {
+    return r.uptime !== null && r.uptime !== undefined && !isNaN(r.uptime) ? `${Math.round(r.uptime)}s` : "—";
+  });
+
+  const tempData = chronologicalLogs.map(r => (r.temperature ?? r.temp ?? null));
+  const humData  = chronologicalLogs.map(r => (r.humidity ?? null));
+  const presData = chronologicalLogs.map(r => (r.pressure ?? null));
+  const soilData = chronologicalLogs.map(r => (r.soilPercent ?? null));
+
+  // ── 1. Left Chart: Temperature & Humidity ──
+  const envCanvas = document.getElementById("esp32EnvChart");
+  if (envCanvas) {
+    if (esp32State.envChart) {
+      esp32State.envChart.data.labels = labels;
+      esp32State.envChart.data.datasets[0].data = tempData;
+      esp32State.envChart.data.datasets[1].data = humData;
+      esp32State.envChart.update("none");
+    } else {
+      esp32State.envChart = new Chart(envCanvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Temperature (°C)",
+              data: tempData,
+              borderColor: "#10b981",
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              tension: 0.25,
+              yAxisID: "yTemp",
+            },
+            {
+              label: "Humidity (%)",
+              data: humData,
+              borderColor: "#38bdf8",
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              tension: 0.25,
+              yAxisID: "yHum",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "rgba(15, 23, 42, 0.95)",
+              titleColor: "#f8fafc",
+              bodyColor: "#e2e8f0",
+              borderColor: "rgba(255,255,255,0.1)",
+              borderWidth: 1,
+              cornerRadius: 8,
+              padding: 10,
+            },
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255, 255, 255, 0.04)" },
+              ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 10 } },
+              title: { display: true, text: "ESP32 Uptime", color: "rgba(255, 255, 255, 0.4)", font: { size: 10 } },
+            },
+            yTemp: {
+              type: "linear",
+              position: "left",
+              beginAtZero: false,
+              grid: { color: "rgba(255, 255, 255, 0.04)" },
+              ticks: { color: "#10b981", callback: v => v + "°C", font: { size: 11 } },
+              title: { display: true, text: "Temperature", color: "#10b981", font: { size: 11, weight: "bold" } },
+            },
+            yHum: {
+              type: "linear",
+              position: "right",
+              beginAtZero: false,
+              grid: { drawOnChartArea: false },
+              ticks: { color: "#38bdf8", callback: v => v + "%", font: { size: 11 } },
+              title: { display: true, text: "Humidity", color: "#38bdf8", font: { size: 11, weight: "bold" } },
+            },
+          },
+          animation: false,
+        },
+      });
+    }
+  }
+
+  // ── 2. Right Chart: Barometric Pressure & Soil Moisture ──
+  const atmCanvas = document.getElementById("esp32AtmChart");
+  if (atmCanvas) {
+    if (esp32State.atmChart) {
+      esp32State.atmChart.data.labels = labels;
+      esp32State.atmChart.data.datasets[0].data = presData;
+      esp32State.atmChart.data.datasets[1].data = soilData;
+      esp32State.atmChart.update("none");
+    } else {
+      esp32State.atmChart = new Chart(atmCanvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Pressure (hPa)",
+              data: presData,
+              borderColor: "#f59e0b",
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              tension: 0.25,
+              yAxisID: "yPres",
+            },
+            {
+              label: "Soil Moisture (%)",
+              data: soilData,
+              borderColor: "#a855f7",
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              tension: 0.25,
+              yAxisID: "ySoil",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "rgba(15, 23, 42, 0.95)",
+              titleColor: "#f8fafc",
+              bodyColor: "#e2e8f0",
+              borderColor: "rgba(255,255,255,0.1)",
+              borderWidth: 1,
+              cornerRadius: 8,
+              padding: 10,
+            },
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255, 255, 255, 0.04)" },
+              ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 10 } },
+              title: { display: true, text: "ESP32 Uptime", color: "rgba(255, 255, 255, 0.4)", font: { size: 10 } },
+            },
+            yPres: {
+              type: "linear",
+              position: "left",
+              beginAtZero: false,
+              grid: { color: "rgba(255, 255, 255, 0.04)" },
+              ticks: { color: "#f59e0b", callback: v => v + " hPa", font: { size: 11 } },
+              title: { display: true, text: "Pressure (hPa)", color: "#f59e0b", font: { size: 11, weight: "bold" } },
+            },
+            ySoil: {
+              type: "linear",
+              position: "right",
+              beginAtZero: true,
+              suggestedMax: 100,
+              grid: { drawOnChartArea: false },
+              ticks: { color: "#a855f7", callback: v => v + "%", font: { size: 11 } },
+              title: { display: true, text: "Soil Moisture", color: "#a855f7", font: { size: 11, weight: "bold" } },
+            },
+          },
+          animation: false,
+        },
+      });
+    }
+  }
+}
+
+// ── Button wiring ──────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const refreshBtn = document.getElementById("esp32RefreshBtn");
+  if (refreshBtn) refreshBtn.addEventListener("click", () => esp32SyncAll());
+
+  const refreshLogsBtn = document.getElementById("esp32RefreshLogsBtn");
+  if (refreshLogsBtn) refreshLogsBtn.addEventListener("click", () => esp32SyncAll());
+});

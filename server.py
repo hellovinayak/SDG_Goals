@@ -13,9 +13,16 @@ import numpy as np
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse, Response
+from fastapi.responses import HTMLResponse, FileResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+import csv
+import time
+import traceback
+
+# ── ESP32 Configuration ──
+ESP32_BASE_URL = os.environ.get("ESP32_URL", "http://192.168.4.1")
+ESP32_TIMEOUT = 4  # seconds
 
 # Ensure local src package is on path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -303,6 +310,295 @@ def get_audit_report():
         with open(report_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {"message": "Data audit inventory not found."}
+
+# ═══════════════════════════════════════════════════════════
+# ESP32 PROXY ENDPOINTS  (avoids browser CORS issues)
+# ═══════════════════════════════════════════════════════════
+import urllib.request
+import urllib.error
+import re as _re
+import json as _json
+
+ESP32_BASE_URL = os.environ.get("ESP32_URL", "http://192.168.4.1")
+ESP32_TIMEOUT = int(os.environ.get("ESP32_TIMEOUT", "5"))
+
+_esp32_discovered_endpoints = []
+_esp32_inspected_html = False
+_last_known_soil_raw = 0.0
+
+NO_CACHE_HEADERS = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
+
+def _fetch_esp32(path: str, timeout: int = ESP32_TIMEOUT) -> bytes:
+    """Low-level GET to ESP32 with cache-busting and no-cache headers."""
+    sep = "&" if "?" in path else "?"
+    url = f"{ESP32_BASE_URL}{path}{sep}_nocache={int(time.time() * 1000)}"
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (SDG-Dashboard-Proxy/1.0)",
+            "Accept": "*/*",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read()
+
+def _safe_float(v):
+    if v is None:
+        return None
+    try:
+        s = str(v).strip().strip('"').strip("'")
+        if not s or s.lower() in ("nan", "null", "none", "-", "—"):
+            return None
+        return float(s)
+    except (ValueError, TypeError):
+        return None
+
+def _first_valid(*vals):
+    """Returns the first non-None value, properly preserving 0 and 0.0."""
+    for v in vals:
+        if v is not None and v != "":
+            return v
+    return None
+
+def _inspect_esp32_root_html():
+    """Inspects root HTML / script on ESP32 to discover API routes."""
+    global _esp32_inspected_html, _esp32_discovered_endpoints
+    if _esp32_inspected_html:
+        return _esp32_discovered_endpoints
+
+    try:
+        raw_html = _fetch_esp32("/", timeout=3).decode("utf-8", errors="replace")
+        _esp32_inspected_html = True
+        patterns = _re.findall(r'["\'](/[\w\-_]+)["\']', raw_html)
+        discovered = []
+        for p in patterns:
+            if p not in ("/", "/download") and not p.endswith((".css", ".js", ".png", ".ico", ".jpg")):
+                if p not in discovered:
+                    discovered.append(p)
+        _esp32_discovered_endpoints = discovered
+        print(f"[ESP32 Proxy] Discovered endpoints on ESP32 root HTML: {_esp32_discovered_endpoints}", flush=True)
+        return discovered
+    except Exception:
+        return []
+
+def _parse_csv_text(text: str) -> list:
+    """
+    Parses CSV text by column index position:
+      Col 0: uptime (seconds)
+      Col 1: temp / temperature (°C)
+      Col 2: humidity (%)
+      Col 3: pressure (hPa)
+      Col 4: soilPercent (%)
+      Col 5: soilRaw (Raw ADC)
+    Filters empty lines and trims trailing whitespace.
+    """
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not lines:
+        return []
+
+    # Check if first row is a header row (has alphabetic letters)
+    first_line = lines[0]
+    has_header = any(c.isalpha() for c in first_line)
+    data_lines = lines[1:] if has_header else lines
+
+    parsed_rows = []
+    for line in data_lines:
+        cols = [c.strip() for c in line.split(",")]
+        if len(cols) < 2:
+            continue
+
+        uptime = _safe_float(cols[0]) if len(cols) > 0 else None
+        temp = _safe_float(cols[1]) if len(cols) > 1 else None
+        hum = _safe_float(cols[2]) if len(cols) > 2 else None
+        pres = _safe_float(cols[3]) if len(cols) > 3 else None
+        soil_pct = _safe_float(cols[4]) if len(cols) > 4 else None
+        raw_val = _safe_float(cols[5]) if len(cols) > 5 else 0.0
+        if raw_val is None:
+            raw_val = 0.0
+        global _last_known_soil_raw
+        _last_known_soil_raw = raw_val
+
+        row = {
+            "uptime": uptime,
+            "temperature": temp,
+            "temp": temp,
+            "humidity": hum,
+            "pressure": pres,
+            "soilPercent": soil_pct,
+            "soilRaw": raw_val,
+        }
+        parsed_rows.append(row)
+    return parsed_rows
+
+def _pick_latest_reading(rows: list) -> dict:
+    """
+    Picks the row with largest uptime (or last row) as the current live reading.
+    """
+    if not rows:
+        return {}
+    rows_with_uptime = [r for r in rows if r.get("uptime") is not None]
+    if rows_with_uptime:
+        return max(rows_with_uptime, key=lambda r: r["uptime"])
+    return rows[-1]
+
+@app.get("/api/esp32/data")
+def get_esp32_data():
+    """Proxy live sensor readings from the ESP32.
+    Strategy:
+      1. Try JSON endpoints (discovered or /data).
+      2. Parse /download CSV by column index position, picking largest uptime.
+    """
+    ts_now = time.time()
+
+    # Discover endpoints from root HTML if not done yet
+    discovered = _inspect_esp32_root_html()
+
+    # ── Attempt 1: Check known JSON endpoints (/data, /live, /readings, etc.) ──
+    candidate_json_paths = ["/data"]
+    for ep in discovered:
+        if ep not in candidate_json_paths:
+            candidate_json_paths.append(ep)
+
+    for path in candidate_json_paths:
+        try:
+            raw = _fetch_esp32(path, timeout=3)
+            payload = _json.loads(raw)
+            if isinstance(payload, dict):
+                t = _safe_float(_first_valid(payload.get("temperature"), payload.get("temp"), payload.get("t")))
+                h = _safe_float(_first_valid(payload.get("humidity"), payload.get("hum"), payload.get("h")))
+                p = _safe_float(_first_valid(payload.get("pressure"), payload.get("pres"), payload.get("p")))
+                s = _safe_float(_first_valid(payload.get("soilPercent"), payload.get("soil"), payload.get("s")))
+                r = _safe_float(_first_valid(payload.get("soilRaw"), payload.get("raw"), payload.get("adc")))
+                up = _safe_float(_first_valid(payload.get("uptime"), payload.get("up"), payload.get("time")))
+                if r is None:
+                    r = _last_known_soil_raw
+
+                if any(v is not None for v in (t, h, p, s)):
+                    norm_data = {
+                        "uptime": up,
+                        "temperature": t,
+                        "temp": t,
+                        "humidity": h,
+                        "pressure": p,
+                        "soilPercent": s,
+                        "soilRaw": r,
+                    }
+                    print(f"[ESP32 Proxy] Live data via JSON {path}: {norm_data}", flush=True)
+                    return JSONResponse(
+                        content={
+                            "connected": True,
+                            "source": f"json:{path}",
+                            "timestamp": ts_now,
+                            "data": norm_data,
+                        },
+                        headers=NO_CACHE_HEADERS
+                    )
+        except Exception:
+            continue
+
+    # ── Attempt 2: CSV /download fallback ──
+    try:
+        raw = _fetch_esp32("/download", timeout=ESP32_TIMEOUT)
+        text = raw.decode("utf-8", errors="replace").strip()
+        parsed_rows = _parse_csv_text(text)
+        if not parsed_rows:
+            return JSONResponse(
+                content={
+                    "connected": True,
+                    "source": "csv_empty",
+                    "timestamp": ts_now,
+                    "data": {},
+                    "rows": 0,
+                },
+                headers=NO_CACHE_HEADERS
+            )
+
+        latest = _pick_latest_reading(parsed_rows)
+        return JSONResponse(
+            content={
+                "connected": True,
+                "source": "csv_fallback",
+                "timestamp": ts_now,
+                "data": latest,
+                "rows": len(parsed_rows),
+            },
+            headers=NO_CACHE_HEADERS
+        )
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError) as net_err:
+        return JSONResponse(
+            content={
+                "connected": False,
+                "source": "none",
+                "timestamp": ts_now,
+                "error": f"ESP32 unreachable: {net_err}",
+                "data": {},
+            },
+            headers=NO_CACHE_HEADERS
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "connected": False,
+                "source": "none",
+                "timestamp": ts_now,
+                "error": str(e),
+                "data": {},
+            },
+            headers=NO_CACHE_HEADERS
+        )
+
+@app.get("/api/esp32/logs")
+def get_esp32_logs(limit: int = 50):
+    """Proxy the ESP32 CSV download and return the last `limit` rows as JSON."""
+    ts_now = time.time()
+    try:
+        raw = _fetch_esp32("/download", timeout=ESP32_TIMEOUT + 3)
+        text = raw.decode("utf-8", errors="replace").strip()
+        parsed_rows = _parse_csv_text(text)
+
+        # Sort logs by uptime ascending so chronological graphs are correct
+        if any(r.get("uptime") is not None for r in parsed_rows):
+            parsed_rows.sort(key=lambda r: (r.get("uptime") if r.get("uptime") is not None else -1))
+
+        return JSONResponse(
+            content={
+                "connected": True,
+                "timestamp": ts_now,
+                "logs": parsed_rows[-limit:],
+                "total": len(parsed_rows),
+            },
+            headers=NO_CACHE_HEADERS
+        )
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError) as net_err:
+        return JSONResponse(
+            content={
+                "connected": False,
+                "timestamp": ts_now,
+                "error": f"ESP32 unreachable: {net_err}",
+                "logs": [],
+                "total": 0,
+            },
+            headers=NO_CACHE_HEADERS
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "connected": False,
+                "timestamp": ts_now,
+                "error": str(e),
+                "logs": [],
+                "total": 0,
+            },
+            headers=NO_CACHE_HEADERS
+        )
+
 
 # Serve static frontend
 STATIC_DIR = os.path.join(BASE_DIR, "static")

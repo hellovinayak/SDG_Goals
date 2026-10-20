@@ -963,6 +963,232 @@ table.data-table tbody tr:hover {
 .export-tile p  { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.65; }
 
 /* ═══════════════════════════════
+   ESP32 LIVE TELEMETRY
+   ═══════════════════════════════ */
+
+/* Status bar metadata row */
+.esp32-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.esp32-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  min-width: 120px;
+  flex: 1 1 0;
+  transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.esp32-meta-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border-glass);
+}
+
+.esp32-meta-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.esp32-meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+
+/* Sensor cards 4-col grid */
+.esp32-sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .esp32-sensor-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .esp32-sensor-grid { grid-template-columns: 1fr; }
+}
+
+.esp32-sensor-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+  padding: 20px 22px;
+}
+
+.esp32-sensor-card[data-sensor="temperature"] { border-top: 2px solid var(--status-positive); }
+.esp32-sensor-card[data-sensor="humidity"]    { border-top: 2px solid #60a5fa; }
+.esp32-sensor-card[data-sensor="pressure"]    { border-top: 2px solid #fb923c; }
+.esp32-sensor-card[data-sensor="soil"]        { border-top: 2px solid #c084fc; }
+
+.esp32-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.esp32-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+}
+
+.esp32-chip.optimal {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.esp32-chip.neutral {
+  background: rgba(192, 132, 252, 0.15);
+  color: #d8b4fe;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+}
+
+.esp32-sensor-card .kpi-value {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 6px 0 10px;
+  transition: color var(--dur-fast) ease;
+}
+
+.esp32-sensor-card[data-sensor="temperature"] .kpi-value { color: var(--status-positive); }
+.esp32-sensor-card[data-sensor="humidity"]    .kpi-value { color: #60a5fa; }
+.esp32-sensor-card[data-sensor="pressure"]    .kpi-value { color: #fb923c; }
+.esp32-sensor-card[data-sensor="soil"]        .kpi-value { color: #c084fc; }
+
+.esp32-card-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Live Countdown Timer Badge ── */
+.esp32-countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(96, 165, 250, 0.10);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  color: #93c5fd;
+  letter-spacing: 0.01em;
+  transition: all var(--dur-fast) ease;
+}
+
+.esp32-countdown-badge.syncing {
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.40);
+  color: #fde047;
+  animation: esp32-pulse 1s infinite alternate;
+}
+
+@keyframes esp32-pulse {
+  from { opacity: 0.75; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1.02); }
+}
+
+/* ── Dual Side-by-Side Engineering Charts ── */
+.esp32-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1080px) {
+  .esp32-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.esp32-chart-card {
+  position: relative;
+}
+
+.esp32-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legend-pill.green .legend-dot  { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
+.legend-pill.blue .legend-dot   { background: #38bdf8; box-shadow: 0 0 6px rgba(56, 189, 248, 0.6); }
+.legend-pill.orange .legend-dot { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.6); }
+.legend-pill.purple .legend-dot { background: #a855f7; box-shadow: 0 0 6px rgba(168, 85, 247, 0.6); }
+
+/* Connection status dot colors */
+#esp32StatusDot.connected {
+  background: var(--status-positive);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+}
+
+#esp32StatusDot.disconnected {
+  background: var(--status-negative);
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.7);
+  animation: none;
+}
+
+#esp32StatusDot.reconnecting {
+  background: var(--status-caution);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+
+/* Animate value updates */
+@keyframes esp32-value-flash {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.esp32-value-updating {
+  animation: esp32-value-flash 0.3s ease;
+}
+
+/* ═══════════════════════════════
    FOOTER
    ═══════════════════════════════ */
 .site-footer {

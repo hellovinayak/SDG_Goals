@@ -111,6 +111,7 @@
       <button class="tab-btn active" data-tab="tab-forecaster"><i data-lucide="trending-up" class="icon-sm"></i> Trajectory Forecaster</button>
       <button class="tab-btn" data-tab="tab-risk"><i data-lucide="shield-alert" class="icon-sm"></i> Risk Matrix &amp; Alerts</button>
       <button class="tab-btn" data-tab="tab-geo"><i data-lucide="map" class="icon-sm"></i> Spatial Analytics &amp; Rankings</button>
+      <button class="tab-btn" data-tab="tab-esp32"><i data-lucide="radio" class="icon-sm"></i> Live ESP32 Telemetry</button>
       <button class="tab-btn" data-tab="tab-climate"><i data-lucide="leaf" class="icon-sm"></i> SDG 13 Climate Intelligence</button>
       <button class="tab-btn" data-tab="tab-health"><i data-lucide="heart-pulse" class="icon-sm"></i> SDG 3 Health Indicators</button>
       <button class="tab-btn" data-tab="tab-policy"><i data-lucide="landmark" class="icon-sm"></i> Policy &amp; Governance</button>
@@ -237,6 +238,179 @@
           <div id="state-leaderboard-container" style="max-height: 520px; overflow-y: auto;"></div>
         </div>
       </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         LIVE ESP32 TELEMETRY TAB
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="tab-esp32" class="tab-content">
+
+      <!-- ── Device Status Bar with Live Countdown ── -->
+      <div class="glass-panel esp32-status-bar" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title"><i data-lucide="radio" class="icon-sm"></i> ESP32 Live Telemetry Station</h3>
+            <p class="card-subtitle" id="esp32SyncSubtitle">Synchronized with ESP32 10s logging cycle</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span class="tag-pill" id="esp32ConnBadge">
+              <span class="status-dot" id="esp32StatusDot"></span>
+              <span id="esp32ConnText">Connecting…</span>
+            </span>
+            <span class="esp32-countdown-badge" id="esp32CountdownBadge" title="Automatic sync timer">
+              <i data-lucide="timer" class="icon-sm"></i>
+              <span id="esp32CountdownText">Next sync in 10s</span>
+            </span>
+            <button type="button" class="btn-secondary" id="esp32RefreshBtn" title="Sync telemetry immediately">
+              <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh Now
+            </button>
+          </div>
+        </div>
+        <div class="esp32-meta-row">
+          <div class="esp32-meta-item">
+            <span class="esp32-meta-label">Device</span>
+            <span class="esp32-meta-value">ESP32 Node</span>
+          </div>
+          <div class="esp32-meta-item">
+            <span class="esp32-meta-label">IP Address</span>
+            <span class="esp32-meta-value">192.168.4.1</span>
+          </div>
+          <div class="esp32-meta-item">
+            <span class="esp32-meta-label">System Uptime</span>
+            <span class="esp32-meta-value" id="esp32Uptime">—</span>
+          </div>
+          <div class="esp32-meta-item">
+            <span class="esp32-meta-label">Log Entries</span>
+            <span class="esp32-meta-value" id="esp32LogCount">—</span>
+          </div>
+          <div class="esp32-meta-item">
+            <span class="esp32-meta-label">Last Synchronized</span>
+            <span class="esp32-meta-value" id="esp32LastUpdate">—</span>
+          </div>
+          <div class="esp32-meta-item">
+            <span class="esp32-meta-label">Sync Status</span>
+            <span class="esp32-meta-value" id="esp32SourceText">Waiting…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Live Sensor Metric Cards (Clean, Human & Minimal) ── -->
+      <div class="esp32-sensor-grid">
+        <div class="glass-panel kpi-card esp32-sensor-card" data-sensor="temperature">
+          <div class="esp32-card-head">
+            <span class="kpi-title"><i data-lucide="thermometer" class="icon-sm"></i> Temperature</span>
+            <span class="esp32-chip optimal" id="esp32TempChip">Normal</span>
+          </div>
+          <div class="kpi-value" id="esp32TempVal">—</div>
+          <div class="esp32-card-sub"><span id="esp32TempUnit">°C · DHT11 Ambient</span></div>
+        </div>
+
+        <div class="glass-panel kpi-card esp32-sensor-card" data-sensor="humidity">
+          <div class="esp32-card-head">
+            <span class="kpi-title"><i data-lucide="droplets" class="icon-sm"></i> Relative Humidity</span>
+            <span class="esp32-chip optimal" id="esp32HumChip">Optimal</span>
+          </div>
+          <div class="kpi-value" id="esp32HumVal">—</div>
+          <div class="esp32-card-sub"><span id="esp32HumUnit">% · DHT11 Sensor</span></div>
+        </div>
+
+        <div class="glass-panel kpi-card esp32-sensor-card" data-sensor="pressure">
+          <div class="esp32-card-head">
+            <span class="kpi-title"><i data-lucide="gauge" class="icon-sm"></i> Barometric Pressure</span>
+            <span class="esp32-chip optimal" id="esp32PresChip">Stable</span>
+          </div>
+          <div class="kpi-value" id="esp32PresVal">—</div>
+          <div class="esp32-card-sub"><span id="esp32PresUnit">hPa · BMP280 Sensor</span></div>
+        </div>
+
+        <div class="glass-panel kpi-card esp32-sensor-card" data-sensor="soil">
+          <div class="esp32-card-head">
+            <span class="kpi-title"><i data-lucide="flower-2" class="icon-sm"></i> Soil Moisture</span>
+            <span class="esp32-chip neutral" id="esp32SoilChip">Active</span>
+          </div>
+          <div class="kpi-value" id="esp32SoilVal">—</div>
+          <div class="esp32-card-sub"><span id="esp32SoilUnit">% · Raw ADC: <strong id="esp32SoilRaw" style="color: var(--text-primary); font-weight:700;">0</strong></span></div>
+        </div>
+      </div>
+
+      <!-- ── Clean Side-by-Side Engineering Charts ── -->
+      <div class="esp32-charts-grid" style="margin-bottom: 24px;">
+        
+        <!-- Left Chart: Temperature & Humidity vs Uptime -->
+        <div class="glass-panel esp32-chart-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title"><i data-lucide="thermometer" class="icon-sm" style="color: #10b981;"></i> Temperature &amp; Humidity</h3>
+              <p class="card-subtitle">Real logged readings by ESP32 Uptime</p>
+            </div>
+            <div class="esp32-chart-legend">
+              <span class="legend-pill green"><span class="legend-dot"></span> Temp (°C)</span>
+              <span class="legend-pill blue"><span class="legend-dot"></span> Humidity (%)</span>
+            </div>
+          </div>
+          <div class="chart-box" style="height: 310px;">
+            <canvas id="esp32EnvChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Right Chart: Barometric Pressure & Soil Moisture vs Uptime -->
+        <div class="glass-panel esp32-chart-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title"><i data-lucide="gauge" class="icon-sm" style="color: #f59e0b;"></i> Barometric Pressure &amp; Soil</h3>
+              <p class="card-subtitle">Auto-scaled hPa fluctuations &amp; soil moisture</p>
+            </div>
+            <div class="esp32-chart-legend">
+              <span class="legend-pill orange"><span class="legend-dot"></span> Pressure (hPa)</span>
+              <span class="legend-pill purple"><span class="legend-dot"></span> Soil (%)</span>
+            </div>
+          </div>
+          <div class="chart-box" style="height: 310px;">
+            <canvas id="esp32AtmChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Sensor Logs Table ── -->
+      <div class="glass-panel">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title"><i data-lucide="list" class="icon-sm"></i> Recent Sensor Log Entries</h3>
+            <p class="card-subtitle">Auto-updated on every 10s sync (sorted newest first)</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span class="esp32-countdown-badge" id="esp32TableSyncBadge">
+              <span class="status-dot live"></span>
+              <span id="esp32TableSyncText">Sync in 10s</span>
+            </span>
+            <button type="button" class="btn-secondary" id="esp32RefreshLogsBtn">
+              <i data-lucide="refresh-cw" class="icon-sm"></i> Refresh Logs
+            </button>
+            <a href="http://192.168.4.1/download" class="btn-primary" download target="_blank" rel="noopener">
+              <i data-lucide="download" class="icon-sm"></i> Download CSV
+            </a>
+          </div>
+        </div>
+        <div class="table-wrapper" style="max-height: 440px; overflow-y: auto;">
+          <table class="data-table" id="esp32LogTable">
+            <thead>
+              <tr>
+                <th>Uptime (s)</th>
+                <th>Temperature (°C)</th>
+                <th>Humidity (%)</th>
+                <th>Pressure (hPa)</th>
+                <th>Soil Moisture (%)</th>
+                <th>Raw ADC</th>
+              </tr>
+            </thead>
+            <tbody id="esp32LogBody">
+              <tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 40px;">Waiting for ESP32 data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
 
     <section id="tab-climate" class="tab-content">
